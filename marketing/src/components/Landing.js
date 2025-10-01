@@ -6,10 +6,10 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import MaterialLink from '@material-ui/core/Link';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 function Copyright() {
   return (
@@ -66,6 +66,25 @@ const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 export default function Album() {
   const classes = useStyles();
 
+  const [images, setImages] = React.useState(() => []);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const fetchImages = React.useCallback(async () => {
+    if (images.length) return;
+
+    setIsLoading(true);
+    const response = await fetch('https://picsum.photos/v2/list');
+    const data = await response.json();
+    setImages(data);
+    setIsLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    (async () => fetchImages())();
+  }, [fetchImages])
+
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <React.Fragment>
       <main>
@@ -114,13 +133,16 @@ export default function Album() {
         <Container className={classes.cardGrid} maxWidth="md">
           {/* End hero unit */}
           <Grid container spacing={4}>
-            {cards.map((card) => (
+            {cards.map((card,index) => (
               <Grid item key={card} xs={12} sm={6} md={4}>
                 <Card className={classes.card}>
-                  <CardMedia
-                    className={classes.cardMedia}
-                    title="Image title"
-                  />
+                  {images[index] && (
+                    <CardMedia
+                      image={images[card - 1].download_url}
+                      className={classes.cardMedia}
+                      title="Image title"
+                    />
+                  )}
                   <CardContent className={classes.cardContent}>
                     <Typography gutterBottom variant="h5" component="h2">
                       Heading
@@ -157,7 +179,7 @@ export default function Album() {
         >
           Something here to give the footer a purpose!
         </Typography>
-        <Copyright />
+        <Copyright/>
       </footer>
       {/* End footer */}
     </React.Fragment>
